@@ -1,0 +1,46 @@
+<!--       20.471. Desenvolupament d'aplicacions interactives - Universitat Oberta de Catalunya - Curs 2025-26/2    -->
+<!--                                      PR1. <<Intro Capacitor>>                                                  -->
+<!--                                         José López Sender                                                      -->
+<!--                                              index.html                                                            -->
+
+
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosmic Drift</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+
+  <!-- Contenidor p5.js insertat al canvas -->
+
+  <div id="contenidor-canvas"></div>
+
+  <!-- Botó configuració -->
+
+  <button id="boto-config" onclick="toggleConfig()">⚙️</button>
+
+  <!-- Panell de configuració -->
+
+  <div id="panell-config" class="ocult">
+    <h2>⚙️ Configuració</h2>
+    <label>Velocitat de la nau</label>
+    <input type="range" id="velocitat" min="1" max="5" value="3" />
+    <label>Densitat d'asteroides</label>
+    <input type="range" id="densitat" min="1" max="10" value="5" />
+    <button onclick="guardarConfig()">Guardar</button>
+    <button onclick="toggleConfig()">Tancar</button>
+    <p id="record-text">Rècord: 0s</p>
+  </div>
+
+
+  <!-- Llibreria p5.js  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  
+  <script src="js/sketch.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
