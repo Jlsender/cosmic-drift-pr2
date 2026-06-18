@@ -12,13 +12,13 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;         /* Inclou el padding i el border de les dimensions de l'element */
+  box-sizing: border-box;                  /* Inclou el padding i el border de les dimensions de l'element */
 }
 
 body {
-  background: #000010;         /* Fons de color negre */
-  overflow: hidden;              /* Evitem l'escrool per mantenir el canvas a pantalla complerta */
-  font-family: sans-serif;
+  background: #000010;
+  overflow: hidden;
+  font-family: 'Orbitron', monospace;      /* Font */
 }
 
 
@@ -29,7 +29,7 @@ body {
 
 #boto-config {
   position: fixed;                                  /* Mantenim el botó fix a la cantonada superior dreta */
-  top: 20px;
+  top: calc(20px + env(safe-area-inset-top));       /* Respecta la barra d'estat d'Android */
   right: 20px;
   z-index: 9999;                                     /* Per damunt dels altres elements */
   background: rgba(255, 255, 255, 0.1);
@@ -46,56 +46,94 @@ body {
 
 
 /* *************************************************************************************************************
-                                             PANELL DE CONFIGURACIÓ
+                                            PANELL DE CONFIGURACIÓ
 ************************************************************************************************************* */
 
 #panell-config {
-  position: fixed;                                      /* Mantenim el panell fix a la dreta de la pantalla */ 
+  position: fixed;
   top: 0;
-  right: 0;
-  width: 280px;
-  height: 100%;
-  background: rgba(0, 0, 30, 0.95);                   /* Fons semitransparent */
-  border-left: 1px solid rgba(0, 255, 255, 0.3);      /* Vora de color cian */
+  left: 0;
+  width: 100%;
+  height: 50%;                                                         
+  background: rgba(0, 0, 30, 0.97);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
   color: white;
-  padding: 2rem 1.5rem;
+  padding: calc(1.5rem + env(safe-area-inset-top)) 1.5rem 1.5rem 1.5rem;
   z-index: 99;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  justify-content: space-between;
+  backdrop-filter: blur(4px);                /* Difuminat del fons */
+  -webkit-backdrop-filter: blur(4px);        /* Compatibilitat amb WebKit */
+}
+
+#config-interior {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
 }
 
 #panell-config h2 {
-  color: #00ffff;           /* Color del títol */
-  margin-bottom: 1rem;
+  color: #00ffff;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+#config-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.config-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 #panell-config label {
-  font-size: 0.9rem;
-  color: #aaaacc;           /* Color de les etiquetes */
+  font-size: 0.75rem;
+  color: #aaaacc;
+  letter-spacing: 1px;
 }
 
 #panell-config input[type="range"] {
   width: 100%;
-  -webkit-appearance: auto;
-  appearance: auto;
   cursor: pointer;
-  accent-color: #00ffff;     /* Color del slider */
+  accent-color: #00ffff;
+}
+
+#config-botons {
+  display: flex;
+  gap: 1rem;
 }
 
 #panell-config button {
-  background: #00ffff;        
-  color: #000010;
-  border: none;
+  flex: 1;
+  background: transparent;
+  color: #00ffff;
+  border: 1px solid #00ffff;
   padding: 0.5rem;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: 1px;
 }
 
 #record-text {
   color: #00ffff;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+#config-peu {
+  font-size: 0.6rem;
+  color: rgba(0, 255, 255, 0.4);
+  text-align: center;
+  letter-spacing: 1px;
 }
 
 
@@ -104,7 +142,7 @@ body {
                                              CLASSE OCULT
 ************************************************************************************************************* */
 .ocult {
-  display: none !important;         /* Amaga per complert l'element del flux de la pàgina */
+  display: none !important;         /* Amaga per complert l'element del flux de la pagina */
 }
 
 
@@ -118,4 +156,69 @@ canvas {
   top: 0;
   left: 0;
   z-index: 0;             /* El canvas queda per darrere del botó i el panell */
+}
+
+
+
+/* *************************************************************************************************************
+                                        FITXA INFORMATIVA DE L'ASTEROIDE
+************************************************************************************************************* */
+
+#panell-fitxa {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 16, 0.85);        /* Fons semitransparent fosc */
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#fitxa-contingut {
+  background: rgba(0, 0, 40, 0.98);
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  border-radius: 12px;
+  padding: 2rem;
+  width: 80%;
+  max-width: 320px;
+  text-align: center;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#fitxa-contingut h2 {
+  color: #00ffff;
+  font-size: 1.4rem;
+}
+
+#fitxa-nom {
+  font-size: 1rem;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+#fitxa-perillos {
+  font-size: 0.95rem;
+  color: #aaaacc;
+}
+
+#fitxa-temps {
+  font-size: 1rem;
+  color: #00ffff;
+}
+
+#fitxa-contingut button {
+  background: #00ffff;
+  color: #000010;
+  border: none;
+  padding: 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
 }

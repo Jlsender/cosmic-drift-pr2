@@ -1,5 +1,5 @@
 // *** 20.471. Desenvolupament d'aplicacions interactives - Universitat Oberta de Catalunya - Curs 2025-26/2 ***
-// ***                                      PR1. <<Intro Capacitor>>                                         ***
+// ***                                       PR2. <<Capacitor App>>                                          ***
 // ***                                         José López Sender                                             ***
 // ***                                             sketch.js                                                 ***
 
@@ -9,8 +9,10 @@
 
 // COSMIC DRIFT és una app móbil creada amb Capacitor i p5.js
 // L'usuari controla una cohet inclinant el dispositiu fent servir l'acceleròmetre.
-// El cohet ha d'esquivar asteroides que apareixen des dels costats de la pantalla.
-// Quan col·lisionem amb un asteroide s'activa la vibració del dispositiu i es guarda l'esdeveniment al LocalStorage.
+// El cohet ha d'esquivar asteroides que apareixen obtinguts des de la API NASA NeoWs.
+// Cada asteroide te el nom i la mida basats en les dades reals obtingudes dels objectes propers a la Terra.
+// Quan col·lisionem amb un asteroide s'activa la vibració del dispositiu i es mostra una fitxa on apareix el
+// nom de l'asteroide amb que hem impactat i la perillositat.
 
 
 // *** COSMIC DRIFT - SKETCH P5.JS ***
@@ -28,6 +30,7 @@ new p5(function(p) {
   let enJoc = false;                  // Variable per controlar si la partida es troba en actiu
   let tempsSuperviencia = 0;          // Temps en segons que l'usuari esta jugant
   let ultimTemps = 0;                 // Comptador del temps en mil·lisegons de de l'inici de la partida
+  let enPausa = false;
 
 
 
@@ -41,6 +44,7 @@ new p5(function(p) {
     canvas.parent('contenidor-canvas');                                 // Insertem el canvas dins del contenidor HTML
     inicialitzarEstrelles();                                            // Generem les estrelles del fons amb posicions aleatòries
     nau = new Nau(p.width / 2, p.height / 2);                           // Insertem el cohet al centre de la pantalla
+    p.textFont('Orbitron'); 
   };
 
 
@@ -51,11 +55,11 @@ new p5(function(p) {
 
  
   p.draw = function() {
-    p.background(0, 0, 16, 25);           // Fons semitransparent
+    p.background(0, 0, 16);               // Fons semitransparent
 
     dibuixarEstrelles();                  // Dibuixem les estrelles del fons a cada farem
 
-    if (enJoc) {
+    if (enJoc && !enPausa) {
 
       // ACTUALITZEM EL TEMPS DE SUPERVIVÈNCIA
 
@@ -101,9 +105,9 @@ new p5(function(p) {
     /* Comprovem si la interacció ve del botó o del panell de configuració */
 
     if (event && event.target) {
-      const id = event.target.id || '';                                         // Obtenim el id del element que hem tocat
-      const pare = event.target.closest('#panell-config, #boto-config');        // Comprovem si l'element tocat es del panell o el botó
-      if (id === 'boto-config' || pare) return true;                            // Si es el botó o el panell deixem passar l'event
+      const id = event.target.id || '';                                                         // Obtenim el id del element que hem tocat
+      const pare = event.target.closest('#panell-config, #boto-config, #panell-fitxa');         // Comprovem si l'element tocat es del panell o el botó
+      if (id === 'boto-config' || pare) return true;                                            // Si es el botó o el panell deixem passar l'event
     }
     if (!enJoc) {
       enJoc = true;                       // Activem el mode joc
@@ -158,9 +162,9 @@ new p5(function(p) {
 
      // COMPROVEM LA COL·LISIÓ AMB LA NAU
 
-      if (nau.col·lideixAb(asteroides[i])) {         // Si la nau toca un asteriode
-        colisio();                                   // Activem la col·lisió
-        return;                                      // Sortim del bucle
+      if (nau.col·lideixAb(asteroides[i])) {
+        colisio(asteroides[i]);                       // Identifiquem l'asteroide en que hem xocat
+        return;
       }
 
       if (asteroides[i].foraCanvas()) {              // Si l'asteroide ha sortit dels límits de la pantalla
@@ -173,23 +177,29 @@ new p5(function(p) {
 
   /*******************         GESTIÓ DE LES COL·LISIONS       **************************/
 
-  function colisio() {
-    enJoc = false;                                   // Aturem el joc
-    window.colisioDetectada(tempsSuperviencia);      // Notifiquem la col·lisió a app.js amb el temps transcorregut
-    asteroides = [];                                 // Buidem l'array dels asteroides per reiniciar el joc
+  function colisio(asteroide) {
+    enJoc = false;                                                  // Aturem el joc
+    window.colisioDetectada(tempsSuperviencia, asteroide);         // Notifiquem la col·lisió a app.js amb el temps transcorregut i les dades de l'asteroide
+    asteroides = [];                                                // Buidem l'array dels asteroides per reiniciar el joc
   }
 
 
 
   /*******************        FUNCIONS ACCESSIBLES DES DE APP.JS       **************************/
-  
-  /* Aquesta funció reb les dades de l'acceleròmetre des de app.js i mou el cohet */
 
-  window.actualitzarNau = function(x, y) {
-    if (nau && enJoc) {                       // Només movem el cohet si existeix i el joc està en curs
-      nau.mouAb(x, y);                        // Cridem el mètode pel moviment del cochet amb les dades de l'acceleròmetre
-    }
-  };
+/* Aquesta funció reb les dades de l'acceleròmetre des de app.js i mou el cohet */
+
+window.actualitzarNau = function(x, y) {
+  if (nau && enJoc && !enPausa) {       
+    nau.mouAb(x, y);
+  }
+};
+
+/* Aquesta funció permet pausar i reprendre el joc des de app.js */
+
+window.setPausa = function(estat) {
+  enPausa = estat;                    // Activem o desactivem la pausa
+};
 
 
 
@@ -250,22 +260,38 @@ new p5(function(p) {
       else if (costat === 2) { this.x = p.random(p.width); this.y = p.height + 30; }      // Costat inferior
       else { this.x = -30; this.y = p.random(p.height); }                                 // Costat esquerra
 
-      this.radi = p.random(15, 40);                           // Radi aleatòri entre 15 i 40 píxels
-      this.velX = p.random(-2, 2);                            // Velocitat horitzontal aleatòria
-      this.velY = p.random(-2, 2);                            // Velocitat vertical aleatòria
 
-      /* Garantim una velocitat mínima per evitar asteroides estàtics */
+      /* Carreguem les dades de la NASA o dades aleàtories si a la API no en tenim */
 
-      if (Math.abs(this.velX) < 0.5) this.velX = 0.5;         
+      const dadesDisponibles = window.dadesNASA && window.dadesNASA.length > 0;                 // Comprovem si tenim les dades de la NASA
+      const index = Math.floor(p.random(dadesDisponibles ? window.dadesNASA.length : 1));       // Triem un asteroide aleatori
+
+      if (dadesDisponibles) {
+        const dada = window.dadesNASA[index];                       // Agafem les dades de l'asteroide de la NASA
+        this.nom = dada.nom;                                        // Nom real de l'asteroide
+        this.radi = dada.radi;                                      // Radi de l'asteroide a partir del diàmetre
+        this.perillos = dada.perillos;                              // Identifiquem si es perillos o no
+
+      } else {                                                      // Si no temnim dades
+
+        this.nom = 'Asteroide';                                     // Nom generic
+        this.radi = p.random(15,40);                                // Radi aleatori
+        this.perillos = false;                                      // Per defecte no perillos
+      }
+
+      this.velX = p.random (-2, 2);
+      this.velY = p.random (-2, 2);
+      if (Math.abs(this.velX) < 0.5) this.velX = 0.5;
       if (Math.abs(this.velY) < 0.5) this.velY = 0.5;
 
-      /* Assignem un emoji aleatòri a cada asteriode */
 
-      const emojis = ['🪨', '☄️', '🌑'];
-      this.emoji = emojis[Math.floor(p.random(emojis.length))];   // Triem un emoji aleatori de la llista
+      /* Emoji segons si és perillós o no */
+
+      this.emoji = this.perillos ? '☄️' : '🪨';
     }
 
-    /* Actualitzem la posició de l'asteriode */
+
+    /* Actualizem la posició de l'asteriode */
 
     actualitzar() {
       this.x += this.velX;            // Desplaçem l'asteroide en horitzontal
@@ -278,15 +304,16 @@ new p5(function(p) {
     dibuixar() {
       p.noStroke();
       p.textAlign(p.CENTER, p.CENTER);
-      p.textSize(this.radi * 2);                    // La mida de l'emoji depèn del radi de l'asteroide
-      p.text(this.emoji, this.x, this.y);           // Dibuixem l'emoji assignat a aquest asteroide
+      p.textSize(this.radi * 2);                    // Mida de l'emoji segons el radi de l'asteroide
+      p.text(this.emoji, this.x, this.y);           // Dibuixem l'emoji segons l'asteroide
+    
     }
+
 
     /* Comprovem si l'asteroide ha sortit del canvas */
 
     foraCanvas() {
-      return this.x < -100 || this.x > p.width + 100 ||
-             this.y < -100 || this.y > p.height + 100;          // Apliquem un marge de 100px per evitar desaparicions brusques
+      return this.x < -100 || this.x > p.width + 100 || this.y < -100 || this.y > p.height + 100;          // Apliquem un marge de 100px per evitar desaparicions brusques
     }
   }
 
@@ -295,7 +322,8 @@ new p5(function(p) {
   /*******************        REDIMENSIONEM EL CANVAS       **************************/
 
   p.windowResized = function() {
-    p.resizeCanvas(p.windowWidth, p.windowHeight);             // Adaptem el canvas a la nova mida de la finestra
-  };
+  p.resizeCanvas(p.windowWidth, p.windowHeight);     // Adaptem el canvas
+  inicialitzarEstrelles();                           // Regenerem les estrelles per la nova mida
+};
 
 });
