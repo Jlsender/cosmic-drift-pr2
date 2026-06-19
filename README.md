@@ -66,6 +66,12 @@ La clau personal es pot obtenir gratuïtament a: https://api.nasa.gov/
 
 ---
 
+## Crèdits de la música
+
+- **Música de fons**: "Pixel High Score" — generada amb [Suno AI](https://suno.com)
+
+---
+
 ## Com jugar
 
 1. Obre l'app
@@ -101,4 +107,5 @@ Provat amb:
 ## Llicència
 
 Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+La música de fons "Pixel High Score" ha estat generada amb Suno AI.
 
